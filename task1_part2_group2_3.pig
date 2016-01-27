@@ -1,7 +1,7 @@
 /*
  * HOW TO RUN: $ pig myscript.pig
  * 
- * Group 2 - 2: For each airport X, rank the top-10 airports in decreasing order of on-time departure performance from X.
+ * Group 2 - 3: For each source-destination pair X-Y, rank the top-10 carriers in decreasing order of on-time arrival performance at Y from X.
  *
  */
 
@@ -34,7 +34,7 @@ DESCRIBE data_portion;
 --DUMP data_portion;
 
 -- FOCUS on the problem domain data
-airports_carriers_delays = FOREACH raw_data GENERATE Origin, Dest, DepDelayMinutes AS delay:double;
+airports_carriers_delays = FOREACH raw_data GENERATE TOTUPLE(Origin, Dest), UniqueCarrier, ArrDelayMinutes AS delay:double;
 DESCRIBE airports_carriers_delays;
 --DUMP airports_carriers_delays;
 
