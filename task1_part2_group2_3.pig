@@ -7,8 +7,9 @@
 
 REGISTER /usr/local/pig/lib/piggybank.jar;
 
-%default INPUT_PATH '/cccapstone/aviation/ontime/On_Time_On_Time_Performance_2008_1.csv';
-%default OUTPUT_PATH '/cccapstone/output/$output'
+--%default INPUT_PATH '/cccapstone/aviation/ontime/On_Time_On_Time_Performance_2008_1.csv';
+%default INPUT_PATH '/cccapstone/aviation/ontime';
+%default OUTPUT_PATH '/cccapstone/output/$output';
 
 -- LOAD data
 
