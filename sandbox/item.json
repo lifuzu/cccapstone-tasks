@@ -1,0 +1,6 @@
+{
+  "id": {"S": "2"},
+  "name": {"S": "I don't know yet!"},
+  "rating": {"S": "3"},
+  "duration": {"S": "14"}
+}
