@@ -1,15 +1,19 @@
 /*
  * HOW TO RUN: $ pig myscript.pig
  * 
- * Group 3 - 1: Does the popularity distribution of airports follow a Zipf distribution? If not, what distribution does it follow?
+ * Group 3 - 2: Tom wants to travel from airport X to airport Z. However, Tom also wants to stop at airport Y for some sightseeing on the way. 
+ * More concretely, Tom has the following requirements:
+ * 1. The second leg of the journey (flight Y-Z) must depart two days after the first leg (flight X-Y). For example, if X-Y departs January 5, 2008, Y-Z must depart January 7, 2008.
+ * 2. Tom wants his flights scheduled to depart airport X before 12:00 PM local time and to depart airport Y after 12:00 PM local time.
+ * 3. Tom wants to arrive at each destination with as little delay as possible (assume you know the actual delay of each flight).
  *
  */
 
 REGISTER /usr/local/pig/lib/piggybank.jar;
 
-%default INPUT_PATH '/cccapstone/aviation/ontime/On_Time_On_Time_Performance_2008_1.csv';
---%default INPUT_PATH '/cccapstone/aviation/ontime/On_Time_On_Time_Performance_2008_*.csv';
---%default OUTPUT_PATH '/cccapstone/output/$output';
+--%default INPUT_PATH '/cccapstone/aviation/ontime/On_Time_On_Time_Performance_2008_1.csv';
+%default INPUT_PATH '/cccapstone/aviation/ontime/On_Time_On_Time_Performance_2008_*.csv';
+%default OUTPUT_PATH '/cccapstone/output/$output';
 
 -- LOAD data
 
@@ -33,48 +37,48 @@ raw_data =
   );
 
 -- Fetch a portion of data for debugging
-data_portion = LIMIT raw_data 10000;
-DESCRIBE data_portion;
+--data_portion = LIMIT raw_data 10000;
+--DESCRIBE data_portion;
 --DUMP data_portion;
 
 -- FOCUS on the problem domain data
 airports_A_leg = FOREACH (
-  FILTER data_portion BY DepTime <= '1200' AND
+  FILTER raw_data BY DepTime <= '1200' AND
   DepDelayMinutes IS NOT null) GENERATE Origin, Dest, DepTime, ArrTime, DepDelayMinutes, ArrDelayMinutes, FlightDate;
 DESCRIBE airports_A_leg;
 --DUMP airports_A_leg;
 
 airports_B_leg = FOREACH (
-  FILTER data_portion BY DepTime >= '1200' AND
+  FILTER raw_data BY DepTime >= '1200' AND
   DepDelayMinutes IS NOT null) GENERATE Origin, Dest, DepTime, ArrTime, DepDelayMinutes, ArrDelayMinutes, FlightDate;
 DESCRIBE airports_B_leg;
 --DUMP airports_B_leg;
 
---airports_A_leg_group = GROUP airports_A_leg ALL;
---DESCRIBE airports_A_leg_group;
---DUMP airports_A_leg_group;
-
---airports_AB_leg = FOREACH airports_A_leg_group {
---  T = FILTER airports_B_leg BY group.Dest == Origin;
-  --Delay = (A.DepDelayMinutes + A.ArrDelayMinutes + T.DepDelayMinutes + T.ArrDelayMinutes);
---  GENERATE group.Origin, group.Dest, T.Dest, (DepDelayMinutes + ArrDelayMinutes + T.DepDelayMinutes + T.ArrDelayMinutes) AS (Delay:float);
---};
 airports_AB_leg = JOIN airports_A_leg BY (Dest), airports_B_leg BY (Origin);
 DESCRIBE airports_AB_leg;
 --DUMP airports_AB_leg;
 
 airports_AB_legs_2days = FOREACH (
+  -- Some rows in ArrDelayMinutes are missing, so ignore them!
   FILTER airports_AB_leg BY DaysBetween(airports_B_leg::FlightDate, airports_A_leg::FlightDate) == (long)2
+  AND
+  airports_B_leg::ArrDelayMinutes IS NOT null
 ) GENERATE airports_A_leg::Origin, airports_A_leg::Dest, airports_B_leg::Dest,
   (airports_A_leg::DepDelayMinutes + airports_A_leg::ArrDelayMinutes +  airports_B_leg::DepDelayMinutes +  airports_B_leg::ArrDelayMinutes) AS (Delay:float),
-  airports_A_leg::FlightDate, airports_B_leg::FlightDate;
+  --airports_A_leg::DepDelayMinutes, airports_A_leg::ArrDelayMinutes, airports_B_leg::DepDelayMinutes, airports_B_leg::ArrDelayMinutes,
+  ToString(airports_A_leg::FlightDate, 'dd/MM'), ToString(airports_B_leg::FlightDate, 'dd/MM');
 DESCRIBE airports_AB_legs_2days;
 --DUMP airports_AB_legs_2days;
 
 -- RANK
 airports_AB_legs_rank = RANK airports_AB_legs_2days BY $3 ASC;
 DESCRIBE airports_AB_legs_rank;
-DUMP airports_AB_legs_rank;
+--DUMP airports_AB_legs_rank;
+
+-- LIMIT for debugging
+--airports_AB_legs_rank_lmt = LIMIT airports_AB_legs_rank 100;
+--DESCRIBE airports_AB_legs_rank_lmt;
+--DUMP airports_AB_legs_rank_lmt;
 
 -- STORE
---STORE airports_rank INTO '$OUTPUT_PATH';
+STORE airports_AB_legs_rank INTO '$OUTPUT_PATH';
