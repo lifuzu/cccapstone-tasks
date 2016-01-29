@@ -3,7 +3,7 @@ FILE=task1_part2_group2_1
 
 # CLEAN UP the environment
 rm -fr $FILE.csv*
-hadoop fs -rm -r '/cccapstone/output/'"$FILE"
+hadoop fs -rm -f -r '/cccapstone/output/'"$FILE"
 
 # RUN PIG script
 pig -f $FILE.pig -param output=$FILE
