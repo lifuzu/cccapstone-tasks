@@ -7,6 +7,11 @@
 
 REGISTER /usr/local/pig/lib/piggybank.jar;
 
+--%default INPUT_PATH '/cccapstone/aviation/ontime/On_Time_On_Time_Performance_2008_1.csv';
+%default INPUT_PATH '/cccapstone/aviation/ontime';
+%default output 'task1_part2_group1_2';
+%default OUTPUT_PATH '/cccapstone/output/$output';
+
 -- LOAD data
 
 --2008,1,1,3,4,2008-01-03,"WN",19393,"WN","N483WN",
@@ -17,7 +22,7 @@ REGISTER /usr/local/pig/lib/piggybank.jar;
 --,,,,,
 
 raw_data = 
-  LOAD '/cccapstone/aviation/ontime'
+  LOAD '$INPUT_PATH'
   USING org.apache.pig.piggybank.storage.CSVExcelStorage(',', 'NO_MULTILINE', 'UNIX', 'SKIP_INPUT_HEADER')
   AS (
     Year,Quarter,Month,DayofMonth,DayOfWeek,FlightDate,UniqueCarrier:chararray,AirlineID,Carrier,TailNum,
@@ -69,4 +74,4 @@ DESCRIBE carriers_delay_top_10;
 --DUMP carriers_delay_top_10;
 
 -- STORE
-STORE carriers_delay_top_10 INTO '/cccapstone/group1_2/carriers_delay_rank_10_full';
+STORE carriers_delay_top_10 INTO '$OUTPUT_PATH';
