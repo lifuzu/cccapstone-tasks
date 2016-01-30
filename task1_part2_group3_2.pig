@@ -11,8 +11,8 @@
 
 REGISTER /usr/local/pig/lib/piggybank.jar;
 
-%default INPUT_PATH '/cccapstone/aviation/ontime/On_Time_On_Time_Performance_2008_1.csv';
---%default INPUT_PATH '/cccapstone/aviation/ontime/On_Time_On_Time_Performance_2008_*.csv';
+--%default INPUT_PATH '/cccapstone/aviation/ontime/On_Time_On_Time_Performance_2008_1.csv';
+%default INPUT_PATH '/cccapstone/aviation/ontime/On_Time_On_Time_Performance_2008_*.csv';
 %default OUTPUT_PATH '/cccapstone/output/$output';
 
 SET DEFAULT_PARALLEL 10;
@@ -64,13 +64,13 @@ DESCRIBE airports_B_leg_raw;
 -- DISTINCT
 airports_B_leg = DISTINCT airports_B_leg_raw;
 
-airports_AB_leg = JOIN airports_A_leg BY (Dest), airports_B_leg BY (Origin);
+airports_AB_leg = JOIN airports_A_leg BY (Dest), airports_B_leg BY (Origin) USING 'replicated';
 DESCRIBE airports_AB_leg;
---DUMP airports_AB_leg;
+DUMP airports_AB_leg;
 
-airports_AB_legs_2days = FOREACH (
-  FILTER airports_AB_leg BY DaysBetween(airports_B_leg::FlightDate, airports_A_leg::FlightDate) == (long)2
-) GENERATE airports_A_leg::Origin, airports_A_leg::Dest, airports_B_leg::Dest,
+airports_AB_legs_2days_filter = FILTER airports_AB_leg BY DaysBetween(airports_B_leg::FlightDate, airports_A_leg::FlightDate) == (long)2;
+
+airports_AB_legs_2days = FOREACH airports_AB_legs_2days_filter GENERATE airports_A_leg::Origin, airports_A_leg::Dest, airports_B_leg::Dest,
   (airports_A_leg::DepDelayMinutes + airports_A_leg::ArrDelayMinutes +  airports_B_leg::DepDelayMinutes +  airports_B_leg::ArrDelayMinutes) AS (Delay:float),
   --airports_A_leg::DepDelayMinutes, airports_A_leg::ArrDelayMinutes, airports_B_leg::DepDelayMinutes, airports_B_leg::ArrDelayMinutes,
   ToString(airports_A_leg::FlightDate, 'dd/MM/yyyy');
@@ -93,9 +93,14 @@ airports_AB_legs_only_one = FOREACH airports_AB_legs_2days_group {
   GENERATE FLATTEN(one);
 };
 
--- RANK
-airports_AB_legs_rank = RANK airports_AB_legs_only_one BY $3 ASC;
+-- SORT
+airports_AB_legs_rank = ORDER airports_AB_legs_only_one BY $3 ASC;
 DESCRIBE airports_AB_legs_rank;
+--DUMP airports_AB_legs_rank;
+
+-- RANK
+--airports_AB_legs_rank = RANK airports_AB_legs_only_one BY $3 ASC;
+--DESCRIBE airports_AB_legs_rank;
 --DUMP airports_AB_legs_rank;
 
 -- LIMIT for debugging
