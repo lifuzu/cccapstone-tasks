@@ -11,8 +11,8 @@
 
 REGISTER /usr/local/pig/lib/piggybank.jar;
 
---%default INPUT_PATH '/cccapstone/aviation/ontime/On_Time_On_Time_Performance_2008_1.csv';
-%default INPUT_PATH '/cccapstone/aviation/ontime/On_Time_On_Time_Performance_2008_*.csv';
+%default INPUT_PATH '/cccapstone/aviation/ontime/On_Time_On_Time_Performance_2008_1.csv';
+--%default INPUT_PATH '/cccapstone/aviation/ontime/On_Time_On_Time_Performance_2008_*.csv';
 %default OUTPUT_PATH '/cccapstone/output/$output';
 
 -- LOAD data
@@ -37,22 +37,28 @@ raw_data =
   );
 
 -- Fetch a portion of data for debugging
---data_portion = LIMIT raw_data 10000;
---DESCRIBE data_portion;
+data_portion = LIMIT raw_data 10000;
+DESCRIBE data_portion;
 --DUMP data_portion;
 
 -- FOCUS on the problem domain data
-airports_A_leg = FOREACH (
-  FILTER raw_data BY DepTime <= '1200' AND
+airports_A_leg_raw = FOREACH (
+  FILTER data_portion BY DepTime <= '1200' AND
   DepDelayMinutes IS NOT null) GENERATE Origin, Dest, DepTime, ArrTime, DepDelayMinutes, ArrDelayMinutes, FlightDate;
-DESCRIBE airports_A_leg;
---DUMP airports_A_leg;
+DESCRIBE airports_A_leg_raw;
+--DUMP airports_A_leg_raw;
 
-airports_B_leg = FOREACH (
-  FILTER raw_data BY DepTime >= '1200' AND
+-- DISTINCT
+airports_A_leg = DISTINCT airports_A_leg_raw;
+
+airports_B_leg_raw = FOREACH (
+  FILTER data_portion BY DepTime >= '1200' AND
   DepDelayMinutes IS NOT null) GENERATE Origin, Dest, DepTime, ArrTime, DepDelayMinutes, ArrDelayMinutes, FlightDate;
-DESCRIBE airports_B_leg;
---DUMP airports_B_leg;
+DESCRIBE airports_B_leg_raw;
+--DUMP airports_B_leg_raw;
+
+-- DISTINCT
+airports_B_leg = DISTINCT airports_B_leg_raw;
 
 airports_AB_leg = JOIN airports_A_leg BY (Dest), airports_B_leg BY (Origin);
 DESCRIBE airports_AB_leg;
@@ -66,12 +72,15 @@ airports_AB_legs_2days = FOREACH (
 ) GENERATE airports_A_leg::Origin, airports_A_leg::Dest, airports_B_leg::Dest,
   (airports_A_leg::DepDelayMinutes + airports_A_leg::ArrDelayMinutes +  airports_B_leg::DepDelayMinutes +  airports_B_leg::ArrDelayMinutes) AS (Delay:float),
   --airports_A_leg::DepDelayMinutes, airports_A_leg::ArrDelayMinutes, airports_B_leg::DepDelayMinutes, airports_B_leg::ArrDelayMinutes,
-  ToString(airports_A_leg::FlightDate, 'dd/MM'), ToString(airports_B_leg::FlightDate, 'dd/MM');
+  ToString(airports_A_leg::FlightDate, 'dd/MM/yyyy'), ToString(airports_B_leg::FlightDate, 'dd/MM/yyyy');
 DESCRIBE airports_AB_legs_2days;
 --DUMP airports_AB_legs_2days;
 
+-- DISTINCT
+airports_AB_legs_2days_distinct = DISTINCT airports_AB_legs_2days;
+
 -- RANK
-airports_AB_legs_rank = RANK airports_AB_legs_2days BY $3 ASC;
+airports_AB_legs_rank = RANK airports_AB_legs_2days_distinct BY $3 ASC;
 DESCRIBE airports_AB_legs_rank;
 --DUMP airports_AB_legs_rank;
 
