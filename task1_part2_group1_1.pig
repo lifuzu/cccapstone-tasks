@@ -34,21 +34,26 @@ raw_data =
   );
 
 -- FOCUS on the problem domain data
-flights_ones = FOREACH raw_data GENERATE $11, 1 AS one:int;
-DESCRIBE flights_ones;
---DUMP flights_ones;
+
+airports_origin_counts = FOREACH raw_data GENERATE Origin, 1 AS one:int;
+DESCRIBE airports_origin_counts;
+--DUMP airports_origin_counts;
+
+airports_dest_counts = FOREACH raw_data GENERATE Dest, 1 AS one:int;
+DESCRIBE airports_dest_counts;
+--DUMP airports_dest_counts;
 
 -- MAPREDUCE
-flights_group = GROUP flights_ones BY $0;
-DESCRIBE flights_group;
---DUMP flights_group;
+airports_group = COGROUP airports_origin_counts BY $0, airports_dest_counts BY $0;
+DESCRIBE airports_group;
+--DUMP airports_group;
 
-flights_count = FOREACH flights_group GENERATE COUNT(flights_ones.one), group;
-DESCRIBE flights_count;
---DUMP flights_count;
+airports_pops = FOREACH airports_group GENERATE (COUNT(airports_origin_counts.one) + COUNT(airports_dest_counts.one)), group;
+DESCRIBE airports_pops;
+--DUMP airports_pops;
 
 -- SORT
-airports_rank = ORDER flights_count BY $0 DESC;
+airports_rank = ORDER airports_pops BY $0 DESC;
 DESCRIBE airports_rank;
 --DUMP airports_rank;
 

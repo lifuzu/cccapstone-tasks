@@ -8,10 +8,9 @@ CREATE TABLE task1_part2_group3_2 (
   dest text,
   delay float,
   first_date text,
-  second_date text,
-  PRIMARY KEY (origin, through, dest, first_date, second_date)
+  PRIMARY KEY (origin, through, dest, first_date)
 );
-COPY task1_part2_group3_2 (rank, origin, through, dest, delay, first_date, second_date) FROM 'task1_part2_group3_2.csv' WITH DELIMITER='\t';
+COPY task1_part2_group3_2 (rank, origin, through, dest, delay, first_date) FROM 'task1_part2_group3_2.csv' WITH DELIMITER='\t';
 -- AND NUMPROCESSES=1;
 --WITH HEADER=true;
 SELECT * FROM task1_part2_group3_2;

@@ -33,8 +33,8 @@ raw_data =
   );
 
 -- Fetch a portion of data for debugging
-data_portion = LIMIT raw_data 1000;
-DESCRIBE data_portion;
+--data_portion = LIMIT raw_data 1000;
+--DESCRIBE data_portion;
 --DUMP data_portion;
 
 -- FOCUS on the problem domain data

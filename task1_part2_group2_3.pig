@@ -66,7 +66,7 @@ airports_carriers_delay = FOREACH airports_carriers_group {
 DESCRIBE airports_carriers_delay;
 --DUMP airports_carriers_delay;
 
--- RANK and LIMIT, replace by TOP
+-- RANK and LIMIT
 airports_carriers_delay_group = GROUP airports_carriers_delay BY ($0);
 DESCRIBE airports_carriers_delay_group;
 --DUMP airports_carriers_delay_group;
