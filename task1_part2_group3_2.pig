@@ -47,34 +47,42 @@ raw_data =
 airports_A_leg_raw = FOREACH (
   FILTER raw_data BY DepTime <= '1200' AND
   ArrDelayMinutes IS NOT null AND
-  DepDelayMinutes IS NOT null) GENERATE Origin, Dest, DepDelayMinutes, ArrDelayMinutes, FlightDate;
+  DepDelayMinutes IS NOT null) GENERATE Origin, Dest, ArrDelayMinutes, FlightDate;
 DESCRIBE airports_A_leg_raw;
 --DUMP airports_A_leg_raw;
 
+-- SORT
+airports_A_leg = ORDER airports_A_leg_raw BY $1 ASC;
+DESCRIBE airports_A_leg
+--DUMP airports_A_leg
+
 -- DISTINCT
-airports_A_leg = DISTINCT airports_A_leg_raw;
+--airports_A_leg = DISTINCT airports_A_leg_sorted;
 
 airports_B_leg_raw = FOREACH (
   FILTER raw_data BY DepTime >= '1200' AND
   ArrDelayMinutes IS NOT null AND
-  DepDelayMinutes IS NOT null) GENERATE Origin, Dest, DepDelayMinutes, ArrDelayMinutes, FlightDate;
+  DepDelayMinutes IS NOT null) GENERATE Origin, Dest, ArrDelayMinutes, FlightDate;
 DESCRIBE airports_B_leg_raw;
 --DUMP airports_B_leg_raw;
 
--- DISTINCT
-airports_B_leg = DISTINCT airports_B_leg_raw;
+-- SORT
+airports_B_leg = ORDER airports_B_leg_raw BY $0 ASC;
+DESCRIBE airports_B_leg
+--DUMP airports_B_leg
 
-airports_AB_leg = JOIN airports_A_leg BY (Dest), airports_B_leg BY (Origin) USING 'replicated';
+-- DISTINCT
+--airports_B_leg = DISTINCT airports_B_leg_sorted;
+
+airports_AB_leg = JOIN airports_A_leg BY (Dest), airports_B_leg BY (Origin);
 DESCRIBE airports_AB_leg;
-DUMP airports_AB_leg;
+--DUMP airports_AB_leg;
 
 airports_AB_legs_2days_filter = FILTER airports_AB_leg BY DaysBetween(airports_B_leg::FlightDate, airports_A_leg::FlightDate) == (long)2;
 
 airports_AB_legs_2days = FOREACH airports_AB_legs_2days_filter GENERATE airports_A_leg::Origin, airports_A_leg::Dest, airports_B_leg::Dest,
-  (airports_A_leg::DepDelayMinutes + airports_A_leg::ArrDelayMinutes +  airports_B_leg::DepDelayMinutes +  airports_B_leg::ArrDelayMinutes) AS (Delay:float),
-  --airports_A_leg::DepDelayMinutes, airports_A_leg::ArrDelayMinutes, airports_B_leg::DepDelayMinutes, airports_B_leg::ArrDelayMinutes,
+  ( airports_A_leg::ArrDelayMinutes + airports_B_leg::ArrDelayMinutes) AS (Delay:float),
   ToString(airports_A_leg::FlightDate, 'dd/MM/yyyy');
-  --, ToString(airports_B_leg::FlightDate, 'dd/MM/yyyy');
 DESCRIBE airports_AB_legs_2days;
 --DUMP airports_AB_legs_2days;
 

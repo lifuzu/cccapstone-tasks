@@ -6,7 +6,7 @@ rm -fr $FILE.csv*
 hadoop fs -rm -f -r '/cccapstone/output/'"$FILE"
 
 # RUN PIG script
-pig -f $FILE.pig -param output=$FILE
+pig -x tez -f $FILE.pig -param output=$FILE
 
 # EXPORT to csv
 hadoop fs -getmerge '/cccapstone/output/'"$FILE" "$FILE".csv.raw
