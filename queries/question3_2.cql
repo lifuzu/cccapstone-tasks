@@ -1,0 +1,8 @@
+USE mykeyspace;
+--SELECT origin, through, dest, start_date, average FROM task1_part2_group2_3 WHERE origin = 'CMI' AND dest = 'ORD';
+SELECT * FROM task1_part2_group3_2 WHERE origin = 'CMI' AND through = 'ORD' AND dest = 'LAX' AND first_date = '04/03/2008';
+SELECT * FROM task1_part2_group3_2 WHERE origin = 'JAX' AND through = 'DFW' AND dest = 'CRP' AND first_date = '09/09/2008';
+SELECT * FROM task1_part2_group3_2 WHERE origin = 'SLC' AND through = 'BFL' AND dest = 'LAX' AND first_date = '01/04/2008';
+SELECT * FROM task1_part2_group3_2 WHERE origin = 'LAX' AND through = 'SFO' AND dest = 'PHX' AND first_date = '12/07/2008';
+SELECT * FROM task1_part2_group3_2 WHERE origin = 'DFW' AND through = 'ORD' AND dest = 'DFW' AND first_date = '10/06/2008';
+SELECT * FROM task1_part2_group3_2 WHERE origin = 'LAX' AND through = 'ORD' AND dest = 'JFK' AND first_date = '01/01/2008';

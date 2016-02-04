@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 FILE=task1_part2_group2_3
+CQLSH="/usr/local/cassandra/bin/cqlsh 10.5.178.79 9042"
 
 # CLEAN UP the environment
 rm -fr $FILE.csv*
@@ -15,4 +16,4 @@ hadoop fs -getmerge '/cccapstone/output/'"$FILE" "$FILE".csv.raw
 tr -s ',' '\t' < $FILE.csv.raw | tr -d '()' > $FILE.csv
 
 # IMPORT to Cassandra
-cqlsh -f $FILE.cql
+$CQLSH -f $FILE.cql

@@ -1,0 +1,7 @@
+USE mykeyspace;
+SELECT origin, dest, carrier, average FROM task1_part2_group2_3 WHERE origin = 'CMI' AND dest = 'ORD';
+SELECT origin, dest, carrier, average FROM task1_part2_group2_3 WHERE origin = 'IND' AND dest = 'CMH';
+SELECT origin, dest, carrier, average FROM task1_part2_group2_3 WHERE origin = 'DFW' AND dest = 'IAH';
+SELECT origin, dest, carrier, average FROM task1_part2_group2_3 WHERE origin = 'LAX' AND dest = 'SFO';
+SELECT origin, dest, carrier, average FROM task1_part2_group2_3 WHERE origin = 'JFK' AND dest = 'LAX';
+SELECT origin, dest, carrier, average FROM task1_part2_group2_3 WHERE origin = 'ATL' AND dest = 'PHX';
