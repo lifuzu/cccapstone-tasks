@@ -98,7 +98,7 @@ if __name__ == "__main__":
     #sc = SparkContext(appName="PythonStreamingKafkaWordCount")
     ssc = StreamingContext(sc, 10)
     ssc.checkpoint("checkpoint")
-    ssc.remember(60)
+    ssc.remember(100)
 
     main(ssc)
     #try:
