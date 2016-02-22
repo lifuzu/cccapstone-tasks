@@ -3,7 +3,7 @@ from __future__ import print_function
 import sys
 import signal
 
-appName = "group2-2"
+appName = "group3-2"
 
 from pyspark import SparkContext, SparkConf
 from pyspark.streaming import StreamingContext
@@ -60,13 +60,13 @@ def main(ssc):
             sqlContext = getSqlContextInstance(rdd.context)
             # Convert RDD[String] to RDD[Row] to DataFrame
             parts = rdd.map(lambda line: line.split(","))
-            delays= parts.map(lambda w: Row(carrier=w[0], origin=w[1], dest=w[2], delay=float(w[3])))
+            delays= parts.map(lambda w: Row(flight_date=w[0], origin=w[1], dest=w[2], delay=float(w[3])))
             dataFrame = sqlContext.createDataFrame(delays)
             # Register as table
             dataFrame.registerTempTable("origin_dest_delays")
             # Do word count on table using SQL and print it
             delays_df = \
-                sqlContext.sql("SELECT origin, dest, carrier, avg(delay) AS avg_delay FROM origin_dest_delays GROUP BY origin, dest, carrier")
+                sqlContext.sql("SELECT origin, dest, flight_date, avg(delay) AS avg_delay FROM origin_dest_delays GROUP BY origin, dest, flight_date")
             #carrier_delays_df.registerTempTable("origin_carrier_avg_delays")
             #carrier_avg_delays_df = \
             #    sqlContext.sql("SELECT origin, carrier, avg_delay FROM origin_carrier_avg_delays GROUP BY origin ORDER BY avg_delay LIMIT 10")
