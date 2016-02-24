@@ -66,13 +66,18 @@ def main(ssc):
             dataFrame.registerTempTable("origin_carrier_delays")
             # Do word count on table using SQL and print it
             carrier_delays_df = \
-                sqlContext.sql("SELECT origin, carrier, avg(delay) AS avg_delay FROM origin_carrier_delays GROUP BY origin, carrier")
+                sqlContext.sql("SELECT origin, carrier, avg(delay) AS average FROM origin_carrier_delays GROUP BY origin, carrier")
             #carrier_delays_df.registerTempTable("origin_carrier_avg_delays")
             #carrier_avg_delays_df = \
             #    sqlContext.sql("SELECT origin, carrier, avg_delay FROM origin_carrier_avg_delays GROUP BY origin ORDER BY avg_delay LIMIT 10")
             #for i in carrier_delays_df.rdd.takeOrderedByKey(10, sortValue=lambda x: x[2], reverse=False).map(lambda x: x[1]).collect():
             #    print (i)
-            carrier_delays_df.show()
+            #dataFrame.select("origin", "carrier", "delay").write \
+            carrier_delays_df.write \
+                .format("org.apache.spark.sql.cassandra") \
+                .options( table = "task2_part2_group2_1", keyspace = "mykeyspace") \
+                .save(mode="append")
+            #carrier_delays_df.show()
         except Exception as e: print (e)
         #except:
         #    pass
@@ -93,7 +98,7 @@ if __name__ == "__main__":
         print("Usage: kafka_group2_1.py <zk> <topic>", file=sys.stderr)
         exit(-1)
 
-    conf = SparkConf().setAppName(appName).setMaster("yarn-cluster")
+    conf = SparkConf().set("spark.cassandra.connection.host", "10.5.178.79").setAppName(appName).setMaster("yarn-cluster")
     sc = SparkContext(conf = conf)
     #sc = SparkContext(appName="PythonStreamingKafkaWordCount")
     ssc = StreamingContext(sc, 10)

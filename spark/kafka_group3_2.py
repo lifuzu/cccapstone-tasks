@@ -72,7 +72,11 @@ def main(ssc):
             #    sqlContext.sql("SELECT origin, carrier, avg_delay FROM origin_carrier_avg_delays GROUP BY origin ORDER BY avg_delay LIMIT 10")
             #for i in carrier_delays_df.rdd.takeOrderedByKey(10, sortValue=lambda x: x[2], reverse=False).map(lambda x: x[1]).collect():
             #    print (i)
-            delays_df.show()
+            delays_df.write \
+                .format("org.apache.spark.sql.cassandra") \
+                .options( table = "task2_part2_group3_2", keyspace = "mykeyspace") \
+                .save(mode="append")
+            #delays_df.show()
         except Exception as e: print (e)
         #except:
         #    pass
@@ -90,7 +94,7 @@ def main(ssc):
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
-        print("Usage: kafka_group2_3.py <zk> <topic>", file=sys.stderr)
+        print("Usage: kafka_group3_2.py <zk> <topic>", file=sys.stderr)
         exit(-1)
 
     conf = SparkConf().setAppName(appName).setMaster("yarn-cluster")

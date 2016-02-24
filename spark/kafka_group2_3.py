@@ -3,7 +3,7 @@ from __future__ import print_function
 import sys
 import signal
 
-appName = "group2-2"
+appName = "group2-3"
 
 from pyspark import SparkContext, SparkConf
 from pyspark.streaming import StreamingContext
@@ -72,7 +72,11 @@ def main(ssc):
             #    sqlContext.sql("SELECT origin, carrier, avg_delay FROM origin_carrier_avg_delays GROUP BY origin ORDER BY avg_delay LIMIT 10")
             #for i in carrier_delays_df.rdd.takeOrderedByKey(10, sortValue=lambda x: x[2], reverse=False).map(lambda x: x[1]).collect():
             #    print (i)
-            delays_df.show()
+            delays_df.write \
+                .format("org.apache.spark.sql.cassandra") \
+                .options( table = "task2_part2_group2_3", keyspace = "mykeyspace") \
+                .save(mode="append")
+            #delays_df.show()
         except Exception as e: print (e)
         #except:
         #    pass
