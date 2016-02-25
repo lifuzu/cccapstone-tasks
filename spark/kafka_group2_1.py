@@ -32,6 +32,7 @@ def takeOrderedByKey(self, num, sortValue = None, reverse=False):
 from pyspark.rdd import RDD
 RDD.takeOrderedByKey = takeOrderedByKey
 #DataFrame.takeOrderedByKey = takeOrderedByKey
+from pyspark.sql import functions as F
 
 def exit_gracefully(ssc):
     print("Gracefully stopping Spark Streaming Application")
@@ -60,23 +61,30 @@ def main(ssc):
             sqlContext = getSqlContextInstance(rdd.context)
             # Convert RDD[String] to RDD[Row] to DataFrame
             parts = rdd.map(lambda line: line.split(","))
-            delays= parts.map(lambda w: Row(carrier=w[0], origin=w[1], delay=float(w[2])))
-            dataFrame = sqlContext.createDataFrame(delays)
+            delays_rdd= parts.map(lambda w: Row(carrier=w[0], origin=w[1], delay=float(w[2])))
+            delays = sqlContext.createDataFrame(delays_rdd, samplingRatio=1)
+
+            avg_delays = delays.groupBy("origin", "carrier").agg(F.avg(delays.delay).alias('average'))
+
+            avg_delays.write.format("org.apache.spark.sql.cassandra").\
+                options(table="task2_part2_group2_1", keyspace="mykeyspace").\
+                save(mode="append")
+
             # Register as table
-            dataFrame.registerTempTable("origin_carrier_delays")
+            #dataFrame.registerTempTable("origin_carrier_delays")
             # Do word count on table using SQL and print it
-            carrier_delays_df = \
-                sqlContext.sql("SELECT origin, carrier, avg(delay) AS average FROM origin_carrier_delays GROUP BY origin, carrier")
+            #carrier_delays_df = \
+            #    sqlContext.sql("SELECT origin, carrier, avg(delay) AS average FROM origin_carrier_delays GROUP BY origin, carrier")
             #carrier_delays_df.registerTempTable("origin_carrier_avg_delays")
             #carrier_avg_delays_df = \
             #    sqlContext.sql("SELECT origin, carrier, avg_delay FROM origin_carrier_avg_delays GROUP BY origin ORDER BY avg_delay LIMIT 10")
             #for i in carrier_delays_df.rdd.takeOrderedByKey(10, sortValue=lambda x: x[2], reverse=False).map(lambda x: x[1]).collect():
             #    print (i)
             #dataFrame.select("origin", "carrier", "delay").write \
-            carrier_delays_df.write \
-                .format("org.apache.spark.sql.cassandra") \
-                .options( table = "task2_part2_group2_1", keyspace = "mykeyspace") \
-                .save(mode="append")
+            #carrier_delays_df.write \
+            #    .format("org.apache.spark.sql.cassandra") \
+            #    .options( table = "task2_part2_group2_1", keyspace = "mykeyspace") \
+            #    .save(mode="append")
             #carrier_delays_df.show()
         except Exception as e: print (e)
         #except:
@@ -102,6 +110,7 @@ if __name__ == "__main__":
     sc = SparkContext(conf = conf)
     #sc = SparkContext(appName="PythonStreamingKafkaWordCount")
     ssc = StreamingContext(sc, 10)
+    #ssc.sparkContext.setCheckpointDir("checkpoint")
     ssc.checkpoint("checkpoint")
     ssc.remember(100)
 

@@ -4,7 +4,7 @@ export KAFKA_HOME=/usr/local/kafka
 
 # Describe Kafka Topic
 #kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic test
-$KAFKA_HOME/bin/kafka-topics.sh --describe --zookeeper dnjplatbuild02:2181 --topic my-replicated-topic
+$KAFKA_HOME/bin/kafka-topics.sh --describe --zookeeper dnjplatbuild02:2181 --topic cccapstone-group1-2
 
 # Confirm the Topic
 #kafka-topics.sh --list --zookeeper localhost:2181

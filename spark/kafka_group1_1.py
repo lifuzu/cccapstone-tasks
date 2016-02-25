@@ -30,16 +30,17 @@ def main(ssc):
     data.pprint()
 
     ssc.start()
-    while True:
-        res = ssc.awaitTerminationOrTimeout(10)
-        if res:
+    ssc.awaitTermination()
+    #while True:
+    #    res = ssc.awaitTerminationOrTimeout(10)
+    #    if res:
             # stopped elsewhere
-            print('TERMINATION !!!!!!')
-            break
-        else
+    #        print('TERMINATION !!!!!!')
+    #        break
+    #    else
             # still running
-            pass
-    exit_gracefully(ssc)
+    #        pass
+    #exit_gracefully(ssc)
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
